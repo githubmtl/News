@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.program.haohu.dao.admin.MenuDao">
+    <!-- 菜单插入操作 id="add"必须跟MenuService和MenuDao中的方法名称相同 -->
+    <insert id="add" parameterType="Menu">
+        insert into menu(id,parentId,name,url,icon) values(null,#{parentId},#{name},#{url},#{icon})
+    </insert>
+
+    <!-- 菜单信息模糊分页搜索查询 ${name}是直接取值，#{name}还要用一个占位符，即先换成"?"，然后再取值 -->
+    <!-- parentId = #{parentId}中#{parentId}中的parentId对应MenuController中List<Menu> findList = menuService.findList(queryMap);
+    ret.put("rows", findList); 中List<Menu>类型的findList中包含的parentId -->
+    <!-- name like '%${name}%'中'%${name}%'中的name对应MenuController中getMenuList方法中queryMap.put("name", name);中的"name" -->
+    <!-- limit #{offset},#{pageSize}中offset对应MenuController中getMenuList方法中的queryMap.put("offset", page.getOffset());中的offset -->
+    <!-- limit #{offset},#{pageSize}中pageSize对应MenuController中getMenuList方法中的queryMap.put("pageSize", page.getRows());中的pageSize -->
+    <select id="findList" parameterType="Map" resultType="Menu">
+        select * from menu where 1 = 1
+        <if test="parentId != null">
+            and parentId = #{parentId}
+        </if>
+        <if test="name != null">
+            and name like '%${name}%'
+        </if>
+        <if test="offset != null and pageSize != null">
+            limit #{offset},#{pageSize}
+        </if>
+    </select>
+
+    <!-- 菜单信息模糊分页搜索查询总记录数 -->
+    <select id="getTotal" parameterType="Map" resultType="Integer">
+        select count(*) from menu where 1 = 1
+        <if test="parentId != null">
+            and parentId = #{parentId}
+        </if>
+        <if test="name != null">
+            and name like '%${name}%'
+        </if>
+    </select>
+
+    <!-- 获取顶级菜单信息 -->
+    <select id="findTopList" parameterType="Map" resultType="Menu">
+        select * from menu where parentId = 0
+    </select>
+
+    <!-- 获取某一分类的子菜单信息 -->
+    <select id="findChildrenList" parameterType="Long" resultType="Menu">
+        select * from menu where parentId = #{parentId}
+    </select>
+
+    <!-- 根据菜单id获取菜单信息 -->
+    <select id="findListByIds" parameterType="String" resultType="Menu">
+        select * from menu where id in (${value})
+    </select>
+
+    <!-- 修改菜单信息 -->
+    <update id="edit" parameterType="Menu">
+        update menu set name = #{name},parentId = #{parentId},url = #{url},icon = #{icon} where id = #{id}
+    </update>
+
+    <!-- 删除菜单信息 -->
+    <delete id="delete" parameterType="Long">
+        delete from menu where id = #{id}
+    </delete>
+</mapper>

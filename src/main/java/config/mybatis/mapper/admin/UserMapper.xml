@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.program.haohu.dao.admin.UserDao">
+    <!-- 根据用户名查找用户 -->
+    <select id="findByUsername" parameterType="String" resultType="User">
+        <!--#{username}是UserSercieImpl里面的public User findByUsername(String username)中的username-->
+        select * from user where username = #{username}
+    </select>
+    <!-- 添加用户 -->
+    <insert id="add" parameterType="User">
+        insert into user(id,username,password,roleId,photo,sex,age,address) values(null,#{username},#{password},#{roleId},#{photo},#{sex},#{age},#{address})
+    </insert>
+    <!-- 修改用户 -->
+    <update id="edit" parameterType="User">
+        update user set username = #{username},roleId = #{roleId},photo = #{photo},sex = #{sex},age = #{age},address = #{address} where id = #{id}
+    </update>
+    <!-- 修改用户密码 -->
+    <update id="editPassword" parameterType="User">
+        update user set password = #{password} where id = #{id}
+    </update>
+    <!-- 删除用户,${ids}用$获取值，如果用#号的话，会有一个占位符，判断是否是字符串，如果是的话，默认会在前面加一个'' -->
+    <!-- ${value}代表获取parameterType="String"传递的值。如果是${ids}会报错There is no getter for property named 'ids'，因为${ids}默认会调用get方法来取值，但是String没有ids这个字段 -->
+    <delete id="delete" parameterType="String">
+        delete from user where id in (${value})
+    </delete>
+    <!-- 用户信息模糊分页搜索查询 ${username}是直接取值，#{username}还要用一个占位符，即先换成"?"，然后再取值 -->
+    <!-- 分页获取用户列表，parameterType="Map"，参数类型是根据UserDao里面public List<User> findList(Map<String, Object> queryMap);的参数类型 -->
+    <!-- resultType="User"，返回值类型是根据UserDao里面public List<User> findList(Map<String, Object> queryMap);的返回值类型 -->
+    <select id="findList" parameterType="Map" resultType="User">
+        <!--#{username}是UserSercieImpl里面的public User findByUsername(String username)中的username-->
+        select * from user where 1 = 1
+        <if test="username != null">
+            and username like '%${username}%'
+        </if>
+        <if test="roleId != null">
+            and roleId = #{roleId}
+        </if>
+        <if test="sex != null">
+            and sex = #{username}
+        </if>
+        <if test="offset != null and pageSize != null">
+            limit #{offset},#{pageSize}
+        </if>
+    </select>
+    <!-- 获取符合结果的总记录数 -->
+    <select id="getTotal" parameterType="Map" resultType="Integer">
+        select count(*) from user where 1 = 1
+        <if test="username != null">
+            and username like '%${username}%'
+        </if>
+        <if test="roleId != null">
+            and roleId = #{roleId}
+        </if>
+        <if test="sex != null">
+            and sex = #{username}
+        </if>
+    </select>
+</mapper>

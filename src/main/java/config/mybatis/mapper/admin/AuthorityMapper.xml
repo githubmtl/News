@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.program.haohu.dao.admin.AuthorityDao">
+    <!-- 权限插入操作 id="add"必须跟RoleService中的方法名称相同 -->
+    <insert id="add" parameterType="Authority">
+        insert into authority(id,roleId,menuId) values(null,#{roleId},#{menuId})
+    </insert>
+
+    <!-- 权限信息搜索查询 ${roleId}是直接取值，#{roleId}还要用一个占位符，即先换成"?"，然后再取值 -->
+    <select id="findListByRoleId" parameterType="Long" resultType="Authority">
+        select * from authority
+        <if test="_parameter != null">
+            where roleId = #{roleId}
+        </if>
+    </select>
+
+    <!-- 删除权限信息 -->
+    <delete id="deleteByRoleId" parameterType="Long">
+        delete from authority where roleId = #{roleId}
+    </delete>
+</mapper>
