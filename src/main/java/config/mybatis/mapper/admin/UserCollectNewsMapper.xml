@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.program.haohu.dao.admin.UserCollectNewsDao">
+    <insert id="add" useGeneratedKeys="true" keyProperty="id" parameterType="com.program.haohu.entity.admin.UserCollectNews">
+        insert into user_collect_news(user_id,news_id,col_time) VALUES(#{userId},#{newsId},#{colTime})
+    </insert>
+    <delete id="delete" parameterType="java.lang.Integer">
+        delete from user_collect_news where id=#{id}
+    </delete>
+    <select id="selectByExample" parameterType="com.program.haohu.entity.admin.UserCollectNews" resultType="com.program.haohu.entity.admin.UserCollectNews">
+        select id,user_id userId,news_id newsId,col_time colTime
+        from user_collect_news
+        <where>
+            <if test="userId!=null and userId!=''">
+                and user_id=#{userId}
+            </if>
+            <if test="newsId!=null and newsId!=''">
+                and news_id=#{newsId}
+            </if>
+        </where>
+    </select>
+    <delete id="deleteByExample" parameterType="com.program.haohu.entity.admin.UserCollectNews" >
+          delete from user_collect_news
+        <where>
+            <if test="userId!=null and userId!=''">
+                and user_id=#{userId}
+            </if>
+            <if test="newsId!=null and newsId!=''">
+                and news_id=#{newsId}
+            </if>
+        </where>
+    </delete>
+    <select id="queryMyfavoriteNews" resultMap="com.program.haohu.dao.admin.NewsDao.newsMap">
+        select n.id as n_id,n.categoryId as n_categoryId,n.title as n_title,n.abstrs as n_abstrs,n.tags as n_tags,n.photo as n_photo,n.author as n_author,n.content as n_content,n.viewNumber as n_viewNumber,n.commentNumber as n_commentNumber,n.createTime as n_createTime,
+        nc.id as nc_id,nc.name as nc_name,nc.sort as nc_sort
+        from news n,news_category nc,user_collect_news a where n.categoryId = nc.id and a.news_id=n.id
+        and a.user_id=#{userId}
+    </select>
+</mapper>

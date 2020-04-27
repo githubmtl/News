@@ -1,5 +1,6 @@
 package com.program.haohu.controller.home;
 
+import com.program.haohu.business.service.RecommendService;
 import com.program.haohu.service.admin.NewsCategoryService;
 import com.program.haohu.service.admin.NewsService;
 import com.program.haohu.util.CpachaUtil;
@@ -14,6 +15,7 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.text.ParseException;
@@ -37,6 +39,8 @@ public class IndexController {
     @Autowired
     private NewsService newsService;
 
+    @Autowired
+    private RecommendService recommendService;
     /**
      * 新闻系统首页
      * @param model
@@ -44,12 +48,13 @@ public class IndexController {
      * @author hh
      */
     @RequestMapping(value = "/index",method = RequestMethod.GET)
-    public ModelAndView index(ModelAndView model) {
+    public ModelAndView index(ModelAndView model,HttpSession session) {
         Map<String, Object> queryMap = new HashMap<String, Object>();
         queryMap.put("offset", 0);
         queryMap.put("pageSize", 10);
         model.addObject("newsCategoryList", newsCategoryService.findAll());
         model.addObject("newsList", newsService.findList(queryMap));
+        model.addObject("tj_news", recommendService.recommend(session));
         // 设置jsp页面所在位置为src/main/webapp/WEB-INF/views/home/index
         model.setViewName("home/index/index");
         return model;
@@ -62,8 +67,13 @@ public class IndexController {
      * @author hh
      */
     @RequestMapping(value = "/login",method = RequestMethod.GET)
-    public ModelAndView login(ModelAndView model) {
+    public ModelAndView login(ModelAndView model, HttpSession session,Integer _newsId_) {
+        Object user = session.getAttribute("_login_user_");
+        if (user!=null){//如果已经登录，直接重定向到首页
+            return new ModelAndView("redirect:/");
+        }
         model.setViewName("home/index/login");
+        model.addObject("_newsId_", _newsId_);
         return model;
     }
 

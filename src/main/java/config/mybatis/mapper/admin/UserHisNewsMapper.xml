@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.program.haohu.dao.admin.UserHisNewsDao">
+    <insert id="add" useGeneratedKeys="true" keyProperty="id" parameterType="com.program.haohu.entity.admin.UserHisNews">
+        insert into user_his_news(user_id,news_id,last_view_time) VALUES(#{userId},#{newsId},#{lastViewTime})
+    </insert>
+    <insert id ="addAll" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id" >
+        insert into user_his_news
+        (user_id,news_id,last_view_time)
+        values
+        <foreach collection ="list" item="itm" index= "index" separator =",">
+            (#{itm.userId}, #{itm.newsId}, #{itm.lastViewTime})
+        </foreach>
+    </insert >
+    <select id="selectByUserNewsHis" parameterType="com.program.haohu.entity.admin.UserHisNews" resultType="com.program.haohu.entity.admin.UserHisNews">
+        select id,user_id userId,news_id newsId,last_view_time lastViewTime from user_his_news
+        <where>
+            <if test="id!=null and id!='' ">
+               and id=#{id}
+            </if>
+            <if test="userId!=null and userId!=''">
+                and user_id=#{userId}
+            </if>
+            <if test="newsId!=null and newsId!=''">
+                and news_id=#{newsId}
+            </if>
+        </where>
+    </select>
+    <update id="updateByUserNewsHis" parameterType="com.program.haohu.entity.admin.UserHisNews">
+        update user_his_news set last_view_time=#{lastViewTime} where user_id=#{userId} and news_id=#{newsId}
+    </update>
+    <select id="queryMyHisNews" resultMap="com.program.haohu.dao.admin.NewsDao.newsMap">
+        select n.id as n_id,n.categoryId as n_categoryId,n.title as n_title,n.abstrs as n_abstrs,n.tags as n_tags,n.photo as n_photo,n.author as n_author,n.content as n_content,n.viewNumber as n_viewNumber,n.commentNumber as n_commentNumber,n.createTime as n_createTime,
+        nc.id as nc_id,nc.name as nc_name,nc.sort as nc_sort
+        from news n,news_category nc,user_his_news a where n.categoryId = nc.id and a.news_id=n.id and a.user_id=#{userId} order by a.last_view_time desc
+    </select>
+    <select id="selectUserLike" resultType="java.util.Map">
+        SELECT
+	news.categoryId
+FROM
+	user_his_news a
+INNER JOIN news news ON a.news_id = news.id
+WHERE
+	a.user_id = #{userId}
+GROUP BY
+	news.categoryId
+ORDER BY
+	COUNT(news.categoryId) DESC LIMIT 0,1;
+    </select>
+</mapper>

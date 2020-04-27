@@ -1,8 +1,9 @@
 package com.program.haohu.controller.home;
 
-import com.program.haohu.entity.admin.Comment;
-import com.program.haohu.entity.admin.News;
-import com.program.haohu.entity.admin.NewsCategory;
+import com.program.haohu.business.service.HisService;
+import com.program.haohu.business.service.RecommendService;
+import com.program.haohu.dao.admin.UserCollectNewsDao;
+import com.program.haohu.entity.admin.*;
 import com.program.haohu.page.admin.Page;
 import com.program.haohu.service.admin.CommentService;
 import com.program.haohu.service.admin.NewsCategoryService;
@@ -10,14 +11,17 @@ import com.program.haohu.service.admin.NewsService;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.http.HttpSession;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -37,6 +41,17 @@ public class HomeNewsController {
 
     @Autowired
     private CommentService commentService;
+
+    @Autowired
+    private HisService hisService;
+
+    @Autowired
+    private UserCollectNewsDao userCollectNewsDao;
+
+    @Autowired
+    private RecommendService recommendService;
+
+
 
     /**
      * 获取按评论数排序的最新n条信息
@@ -70,7 +85,7 @@ public class HomeNewsController {
     public ModelAndView categoryList(ModelAndView model,
             // 定义的cid这个参数，就是在浏览器中url后面?后面的参数，比如：localhost:8080/news/category_list?cid=4
             @RequestParam(name = "cid", required = true) Long cid,
-            Page page
+            Page page,HttpSession session
             ) {
         Map<String, Object> queryMap = new HashMap<String, Object>();
         queryMap.put("offset", 0);
@@ -88,6 +103,7 @@ public class HomeNewsController {
         model.addObject("newsCategory", newsCategory);
         // title对应src/main/webapp/WEB-INF/views/home/common/header.jsp中<title>HH新闻${title }</title>中${title }
         model.addObject("title", newsCategory.getName() + "分类下的新闻信息");
+        model.addObject("tj_news", recommendService.recommend(session));
         model.setViewName("home/news/category_list");
         return model;
     }
@@ -132,7 +148,7 @@ public class HomeNewsController {
     @RequestMapping(value = "/search_list",method = RequestMethod.GET)
     public ModelAndView searchList(ModelAndView model,
             @RequestParam(name = "keyword", required = false, defaultValue = "") String keyword,
-            Page page
+            Page page,HttpSession session
             ) {
         Map<String, Object> queryMap = new HashMap<String, Object>();
         queryMap.put("offset", 0);
@@ -148,6 +164,7 @@ public class HomeNewsController {
         model.addObject("title", keyword + "关键字下的新闻信息");
         // "keyword"对应src/main/webapp/WEB-INF/views/home/news/search_list.jsp中<h3>${keyword }</h3>中的keyword
         model.addObject("keyword", keyword);
+        model.addObject("tj_news", recommendService.recommend(session));
         model.setViewName("home/news/search_list");
         return model;
     }
@@ -187,11 +204,13 @@ public class HomeNewsController {
      * @author hh
      */
     @RequestMapping(value = "/detail",method = RequestMethod.GET)
-    public ModelAndView detail(ModelAndView model, Long id) {
+    public ModelAndView detail(ModelAndView model, Long id, HttpSession session) {
         model.addObject("newsCategoryList", newsCategoryService.findAll());
         // id对应home/news/category_list.jsp中<a class="focus" href="../news/detail?id=${news.id }"中的id
         News news = newsService.find(id);
         model.addObject("news", news);
+        model.addObject("detail_flag", true);
+        model.addObject("_newsId_", id);
         // 将新闻的标题传到前台作为网页的title
         model.addObject("title", news.getTitle());
         // 将新闻的标签按逗号(英文,)分割传到前台,tags对应home/news/detail.jsp中<c:forEach items="${tags }" var="tag">中的tags
@@ -200,6 +219,20 @@ public class HomeNewsController {
         model.setViewName("home/news/detail");
         // 新闻浏览量加1
         newsService.updateViewNumber(id);
+        //增加历史
+        hisService.addHis(id.intValue(),session);
+        //是否可以收藏
+        Object user = session.getAttribute("_login_user_");
+        if (user==null){
+            model.addObject("_provaable_", true);
+        }else{
+            List<UserCollectNews> userCollectNews = userCollectNewsDao.selectByExample(new UserCollectNews(((User) user).getId().intValue(), id.intValue(), null));
+            if (CollectionUtils.isEmpty(userCollectNews)){
+                model.addObject("_provaable_", true);
+            }else{
+                model.addObject("_provaable_", false);
+            }
+        }
         return model;
     }
 

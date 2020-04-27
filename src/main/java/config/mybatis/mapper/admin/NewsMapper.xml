@@ -84,4 +84,15 @@
     <update id="updateViewNumber" parameterType="Long">
 		update news set viewNumber = viewNumber + 1 where id = #{id}
 	</update>
+
+    <!-- 查询最热的新闻 -->
+    <select id="queryHotWithoutSession" resultMap="newsMap">
+        select n.id as n_id,n.categoryId as n_categoryId,n.title as n_title,n.abstrs as n_abstrs,n.tags as n_tags,n.photo as n_photo,n.author as n_author,n.content as n_content,n.viewNumber as n_viewNumber,n.commentNumber as n_commentNumber,n.createTime as n_createTime,
+        nc.id as nc_id,nc.name as nc_name,nc.sort as nc_sort
+        from news n,news_category nc where n.categoryId = nc.id
+        <if test="categoryId!=null and categoryId!=''">
+          and n.categoryId=#{categoryId}
+        </if>
+         order by n.viewNumber desc,n.commentNumber desc limit 0,1
+    </select>
 </mapper>

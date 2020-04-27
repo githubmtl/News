@@ -188,7 +188,7 @@ public class SystemController {
         session.setAttribute("role", null);
         session.setAttribute("userMenus", null);
         // 重定向到登录页面
-        return "redirect:login";
+        return "redirect:/";
     }
 
     /**

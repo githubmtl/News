@@ -1,6 +1,7 @@
 package com.program.haohu.dao.admin;
 
 import com.program.haohu.entity.admin.News;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -22,4 +23,5 @@ public interface NewsDao {
     public int updateCommentNumber(Long id);
     public int updateViewNumber(Long id);
     public List<News> findLastCommentList(int pageSize);
+    public News queryHotWithoutSession(@Param("categoryId") Integer categoryId);
 }
