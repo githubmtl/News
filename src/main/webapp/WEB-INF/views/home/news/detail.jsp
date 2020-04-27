@@ -42,7 +42,7 @@
                 <form id="comment-form" name="comment-form" action="" method="POST">
                     <div class="comment">
                         <input type="hidden" name="newsId" value="${news.id }">
-                        <input name="nickname" id="nickname" class="form-control" size="22" placeholder="您的昵称（必填）" maxlength="15" autocomplete="off" tabindex="1" type="text">
+                        <input name="nickname" style="display: none" id="nickname" class="form-control" size="22" placeholder="您的昵称（必填）" maxlength="15" autocomplete="off" tabindex="1" type="text">
                         <div class="comment-box">
                             <textarea placeholder="您的评论或留言（必填）" name="content" id="comment-textarea" cols="100%" rows="3" tabindex="3"></textarea>
                             <div class="comment-ctrl">
@@ -72,12 +72,12 @@ $(document).ready(function() {
     $("body").addClass('single');
     // 评论文章
     $("#comment-submit").click(function () {
-        if ($("#nickname").val() == '') {
-            alert('请填写昵称！');
-            return;
-        }
-        if ($("#comment-textarea").val() == '') {
-            alert('请填写评论内容！');
+        if (${_login_user_json_==null}){
+            layer.msg('未登录，请登录', {
+                icon: 5, time: 1000, end: function () {
+                    window.location.href = "<%=request.getContextPath()%>/index/login?_newsId_=${_newsId_}";
+                }
+            });
             return;
         }
         $.ajax({
@@ -95,8 +95,9 @@ $(document).ready(function() {
                     $("#comment_list").append(li);
                     // 清空评论内容
                     $("#comment-textarea").val('');
+                    layer.msg('评论成功！',{icon: 1, time: 2000});
                 } else {
-                    alert(data.msg);
+                    layer.alert(data.msg, {icon: 5});
                 }
             }
         });

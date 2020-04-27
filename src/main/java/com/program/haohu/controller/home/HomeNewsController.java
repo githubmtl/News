@@ -244,7 +244,7 @@ public class HomeNewsController {
      */
     @RequestMapping(value = "/comment_news",method = RequestMethod.POST)
     @ResponseBody
-    public Map<String, Object> commentNews(Comment comment) {
+    public Map<String, Object> commentNews(Comment comment,HttpSession session) {
         Map<String, Object> ret = new HashMap<String, Object>();
         if (comment == null) {
             ret.put("type", "error");
@@ -256,11 +256,13 @@ public class HomeNewsController {
             ret.put("msg", "请选择一个文章进行评论！");
             return ret;
         }
-        if (StringUtils.isEmpty(comment.getNickname())) {
+        Object user = session.getAttribute("_login_user_");
+        if (user==null){
             ret.put("type", "error");
-            ret.put("msg", "请填写昵称！");
+            ret.put("msg", "用户未登录！");
             return ret;
         }
+        comment.setNickname(((User) user).getUsername());
         if (StringUtils.isEmpty(comment.getContent())) {
             ret.put("type", "error");
             ret.put("msg", "请填写评论内容！");
